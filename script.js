@@ -1,6 +1,10 @@
+// ============================================================
+//  PORTFOLIO — script.js
+// ============================================================
+
 // ===== TYPING ANIMATION =====
 const typingText = document.querySelector(".typing");
-const words = ["Web Developer", "UI/UX Designer", "Frontend Developer"];
+const words = ["Web Developer ", "UI/UX Designer ", "Frontend Developer "];
 let wordIndex = 0;
 let charIndex = 0;
 let isDeleting = false;
@@ -9,57 +13,52 @@ function type() {
   const currentWord = words[wordIndex];
 
   if (isDeleting) {
-    typingText.textContent = currentWord.substring(0, charIndex - 1);
-    charIndex--;
+    typingText.textContent = currentWord.substring(0, charIndex--);
   } else {
-    typingText.textContent = currentWord.substring(0, charIndex + 1);
-    charIndex++;
+    typingText.textContent = currentWord.substring(0, charIndex++);
   }
 
   if (!isDeleting && charIndex === currentWord.length) {
-    setTimeout(() => (isDeleting = true), 1500);
-  } else if (isDeleting && charIndex === 0) {
+    isDeleting = true;
+    setTimeout(type, 1500);
+    return;
+  }
+
+  if (isDeleting && charIndex < 0) {
     isDeleting = false;
+    charIndex = 0;
     wordIndex = (wordIndex + 1) % words.length;
   }
 
-  setTimeout(type, isDeleting ? 80 : 120);
+  setTimeout(type, isDeleting ? 70 : 110);
 }
 type();
 
 
-// ===== SMOOTH SCROLLING + ACTIVE NAV =====
+// ===== NAVIGATION =====
 const navLinks = document.querySelectorAll(".aside .nav a");
 const sections = document.querySelectorAll(".section");
+
 navLinks.forEach((link) => {
   link.addEventListener("click", function (e) {
-    const href = this.getAttribute("href");
-
-    // Only handle hash links
-    if (href.startsWith("#")) {
+    const target = document.querySelector(this.getAttribute("href"));
+    if (target) {
       e.preventDefault();
-      const target = document.querySelector(href);
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth" });
-      }
+      target.scrollIntoView({ behavior: "smooth" });
     }
-
-    // Set active
-    navLinks.forEach((l) => l.classList.remove("active"));
+    navLinks.forEach(l => l.classList.remove("active"));
     this.classList.add("active");
   });
 });
 
-// Highlight nav on scroll
+// Active nav on scroll
 window.addEventListener("scroll", () => {
   let current = "";
   sections.forEach((section) => {
-    const sectionTop = section.offsetTop - 100;
-    if (window.scrollY >= sectionTop) {
-      current = section.getAttribute["id"];
+    if (window.scrollY >= section.offsetTop - 100) {
+      current = section.getAttribute("id");
     }
   });
-
   navLinks.forEach((link) => {
     link.classList.remove("active");
     if (link.getAttribute("href") === "#" + current) {
@@ -70,7 +69,7 @@ window.addEventListener("scroll", () => {
 
 
 // ===== MOBILE NAV TOGGLER =====
-const navToggler = document.querySelector(".nav.toggler");
+const navToggler = document.querySelector(".nav-toggler");
 const aside = document.querySelector(".aside");
 
 if (navToggler) {
@@ -79,7 +78,7 @@ if (navToggler) {
   });
 }
 
-// Close aside when a nav link is clicked on mobile
+// Close sidebar when nav link clicked on mobile
 navLinks.forEach((link) => {
   link.addEventListener("click", () => {
     if (window.innerWidth <= 1199) {
@@ -89,217 +88,247 @@ navLinks.forEach((link) => {
 });
 
 
-// ===== CONTACT FORM VALIDATION =====
-const sendBtn = document.querySelector(".contact .btn");
-const formInputs = document.querySelectorAll(".contact .form-control");
+// ===== CONTACT FORM VALIDATION + SEND TO BACKEND =====
+const form = document.querySelector(".contact-form");
 
-// Get individual fields
-const nameInput   = formInputs[0];
-const emailInput  = formInputs[1];
-const subjectInput = formInputs[2];
-const messageInput = formInputs[3];
-
-// Create error message helper
-function showError(input, message) {
-  clearError(input);
-  input.style.border = "1.5px solid #e74c3c";
-
-  const error = document.createElement("small");
-  error.classList.add("form-error");
-  error.style.cssText =
-    "color:#e74c3c; font-size:12px; margin-left:15px; display:block; margin-top:5px;";
-  error.textContent = message;
-  input.parentElement.appendChild(error);
-}
-
-function clearError(input) {
-  input.style.border = "";
-  const existing = input.parentElement.querySelector(".form-error");
-  if (existing) existing.remove();
-}
-
-function showSuccess(input) {
-  clearError(input);
-  input.style.border = "1.5px solid #2ecc71";
-}
-
-// Validate email format
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+// Helper: show red error under field
+function showError(input, msg) {
+  clearFeedback(input);
+  input.style.border = "1.5px solid #e74c3c";
+  const err = document.createElement("small");
+  err.className = "form-error";
+  err.style.cssText = "color:#e74c3c;font-size:12px;margin-left:15px;display:block;margin-top:4px;";
+  err.textContent = msg;
+  input.parentElement.appendChild(err);
+}
 
-// Real-time validation on input
-[nameInput, emailInput, subjectInput, messageInput].forEach((input) => {
-  if (input) {
-    input.addEventListener("input", () => {
-      if (input.value.trim() !== "") {
-        if (input === emailInput && !isValidEmail(input.value)) {
-          showError(input, "Enter a valid email address.");
-        } else {
-          showSuccess(input);
-        }
+// Helper: show green border on success
+function showSuccess(input) {
+  clearFeedback(input);
+  input.style.border = "1.5px solid #2ecc71";
+}
+
+// Helper: clear all feedback
+function clearFeedback(input) {
+  input.style.border = "";
+  const old = input.parentElement.querySelector(".form-error");
+  if (old) old.remove();
+}
+
+if (form) {
+  const nameInput    = form.querySelector("input[name='name']");
+  const emailInput   = form.querySelector("input[name='email']");
+  const subjectInput = form.querySelector("input[name='subject']");
+  const messageInput = form.querySelector("textarea[name='message']");
+
+  // Real-time validation while typing
+  [nameInput, emailInput, subjectInput, messageInput].forEach((inp) => {
+    inp.addEventListener("input", () => {
+      const val = inp.value.trim();
+      if (!val) { clearFeedback(inp); return; }
+      if (inp === emailInput && !isValidEmail(val)) {
+        showError(inp, "Enter a valid email address.");
       } else {
-        clearError(input);
+        showSuccess(inp);
       }
     });
-  }
-});
+  });
 
-// On Send button click
-if (sendBtn) {
-  sendBtn.addEventListener("click", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     let isValid = true;
 
-    // Name
-    if (!nameInput || nameInput.value.trim() === "") {
-      showError(nameInput, "Name is required.");
-      isValid = false;
-    } else {
-      showSuccess(nameInput);
-    }
+    // Reset all feedback first
+    [nameInput, emailInput, subjectInput, messageInput].forEach(clearFeedback);
 
-    // Email
-    if (!emailInput || emailInput.value.trim() === "") {
+    // Validate name
+    if (!nameInput.value.trim()) {
+      showError(nameInput, "Full name is required.");
+      isValid = false;
+    } else { showSuccess(nameInput); }
+
+    // Validate email
+    if (!emailInput.value.trim()) {
       showError(emailInput, "Email is required.");
       isValid = false;
     } else if (!isValidEmail(emailInput.value)) {
       showError(emailInput, "Enter a valid email address.");
       isValid = false;
-    } else {
-      showSuccess(emailInput);
-    }
+    } else { showSuccess(emailInput); }
 
-    // Subject
-    if (!subjectInput || subjectInput.value.trim() === "") {
+    // Validate subject
+    if (!subjectInput.value.trim()) {
       showError(subjectInput, "Subject is required.");
       isValid = false;
-    } else {
-      showSuccess(subjectInput);
-    }
+    } else { showSuccess(subjectInput); }
 
-    // Message
-    if (!messageInput || messageInput.value.trim() === "") {
-      showError(messageInput, "Message cannot be empty.");
+    // Validate message
+    if (!messageInput.value.trim()) {
+      showError(messageInput, "Message is required.");
       isValid = false;
     } else if (messageInput.value.trim().length < 10) {
       showError(messageInput, "Message must be at least 10 characters.");
       isValid = false;
-    } else {
-      showSuccess(messageInput);
+    } else { showSuccess(messageInput); }
+
+    if (!isValid) return;
+
+    // ✅ FIXED: Changed port from 5500 → 5000 (your Express server port)
+    const sendBtn = form.querySelector("button[type='submit']");
+    sendBtn.textContent = "Sending...";
+    sendBtn.disabled = true;
+
+    try {
+      const res = await fetch("https://portfolio-backend-n1rs.onrender.com", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: nameInput.value.trim(),
+          email: emailInput.value.trim(),
+          subject: subjectInput.value.trim(),
+          message: messageInput.value.trim()
+        })
+      });
+
+      if (res.ok) {
+        showToast("✅ Message sent successfully! I'll get back to you soon.");
+        form.reset();
+        [nameInput, emailInput, subjectInput, messageInput].forEach(clearFeedback);
+      } else {
+        showToast("❌ Failed to send message. Please try again.");
+      }
+
+    } catch (err) {
+      console.error("Fetch error:", err);
+      showToast("⚠️ Cannot connect to server. Make sure server.js is running.");
     }
 
-    // If all valid — show success popup
-    if (isValid) {
-      showToast("✅ Message sent successfully! I'll get back to you soon.");
-      // Reset form
-      [nameInput, emailInput, subjectInput, messageInput].forEach((input) => {
-        input.value = "";
-        input.style.border = "";
-      });
-    }
+    sendBtn.textContent = "Send Message";
+    sendBtn.disabled = false;
   });
 }
 
+
 // ===== TOAST NOTIFICATION =====
-function showToast(message) {
-  // Remove existing toast
-  const existingToast = document.querySelector(".toast-msg");
-  if (existingToast) existingToast.remove();
-
-  const toast = document.createElement("div");
-  toast.classList.add("toast-msg");
-  toast.textContent = message;
-  toast.style.cssText = `
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background: var(--skin-color, #ec1839);
-    color: #fff;
-    padding: 15px 25px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 500;
-    z-index: 9999;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-    animation: slideIn 0.4s ease;
+(function injectToastStyles() {
+  const s = document.createElement("style");
+  s.textContent = `
+    @keyframes toastIn  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes toastOut { from{opacity:1} to{opacity:0} }
+    .toast-msg      { animation: toastIn  0.4s ease forwards; }
+    .toast-msg.hide { animation: toastOut 0.4s ease forwards; }
   `;
+  document.head.appendChild(s);
+})();
 
-  // Slide-in animation
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+function showToast(msg) {
+  document.querySelector(".toast-msg")?.remove();
+  const t = document.createElement("div");
+  t.className = "toast-msg";
+  t.textContent = msg;
+  t.style.cssText = `
+    position:fixed; bottom:30px; right:30px;
+    background:var(--skin-color,#ec1839); color:#fff;
+    padding:14px 24px; border-radius:10px; font-size:15px;
+    font-weight:500; z-index:9999; max-width:320px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.2);
   `;
-  document.head.appendChild(style);
-  document.body.appendChild(toast);
-
+  document.body.appendChild(t);
   setTimeout(() => {
-    toast.style.opacity = "0";
-    toast.style.transition = "opacity 0.5s ease";
-    setTimeout(() => toast.remove(), 500);
+    t.classList.add("hide");
+    setTimeout(() => t.remove(), 400);
   }, 4000);
 }
 
 
 // ===== SKILL BAR ANIMATION ON SCROLL =====
-const skillItems = document.querySelectorAll(".progress-in");
+const skillBars = document.querySelectorAll(".progress-in");
 
-const animateSkills = () => {
-  skillItems.forEach((bar) => {
-    const rect = bar.parentElement.getBoundingClientRect();
-    if (rect.top < window.innerHeight - 50) {
-      bar.style.transition = "width 1s ease";
-      bar.style.width = bar.style.width; // trigger
-    }
-  });
-};
-
-// Save original widths and reset for animation
-skillItems.forEach((bar) => {
-  const originalWidth = bar.style.width;
-  bar.setAttribute("data-width", originalWidth);
+skillBars.forEach((bar) => {
+  bar.setAttribute("data-width", bar.style.width || "0%");
   bar.style.width = "0%";
+  bar.style.transition = "none";
 });
 
-window.addEventListener("scroll", () => {
-  skillItems.forEach((bar) => {
-    const rect = bar.parentElement.getBoundingClientRect();
-    if (rect.top < window.innerHeight - 50) {
+function animateSkillBars() {
+  skillBars.forEach((bar) => {
+    if (bar.getBoundingClientRect().top < window.innerHeight - 60) {
       bar.style.transition = "width 1.2s ease";
       bar.style.width = bar.getAttribute("data-width");
     }
   });
-});
-// Select all sections and nav links
-
-// Hide all sections except active
-function showSection(targetId) {
-    sections.forEach(section => {
-        section.classList.add("hidden");
-    });
-
-    document.querySelector(targetId).classList.remove("hidden");
 }
 
-// Active nav highlight
-function updateNav(target) {
-    navLinks.forEach(link => {
-        link.classList.remove("active");
-    });
-    target.classList.add("active");
+window.addEventListener("scroll", animateSkillBars);
+animateSkillBars(); // run once on load
+
+
+// ===== DARK / LIGHT MODE =====
+(function injectDarkStyles() {
+  const s = document.createElement("style");
+  s.textContent = `
+    body.dark {
+      --bg-black-900:#151515; --bg-black-100:#222222;
+      --bg-black-50:#393939;  --text-black-900:#ffffff;
+      --text-black-700:#e9e9e9;
+    }
+  `;
+  document.head.appendChild(s);
+})();
+
+const dayNightBtn  = document.querySelector(".day-night");
+const dayNightIcon = dayNightBtn?.querySelector("i");
+
+if (localStorage.getItem("theme") === "dark") {
+  document.body.classList.add("dark");
+  dayNightIcon?.classList.replace("fa-moon", "fa-sun");
 }
 
-// Click event
-navLinks.forEach(link => {
-    link.addEventListener("click", function (e) {
-        e.preventDefault();
-
-        const targetId = this.getAttribute("href");
-
-        updateNav(this);
-    });
+dayNightBtn?.addEventListener("click", () => {
+  document.documentElement.classList.toggle("dark");
+  const isDark = document.documentElement.classList.contains("dark");
+  localStorage.setItem("theme", isDark ? "dark" : "light");
+  if (dayNightIcon) {
+    dayNightIcon.classList.toggle("fa-moon", !isDark);
+    dayNightIcon.classList.toggle("fa-sun", isDark);
+  }
 });
+
+
+// ===== PROJECT IMAGE LIGHTBOX =====
+(function initLightbox() {
+  const s = document.createElement("style");
+  s.textContent = `
+    .lb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88);
+      z-index:9999; align-items:center; justify-content:center; }
+    .lb-overlay.active { display:flex; }
+    .lb-overlay img { max-width:90vw; max-height:90vh; border-radius:8px;
+      box-shadow:0 0 40px rgba(0,0,0,0.5); animation:toastIn 0.3s ease; }
+    .lb-close { position:absolute; top:20px; right:30px; color:#fff;
+      font-size:42px; cursor:pointer; font-weight:700; line-height:1; }
+    .lb-close:hover { color:var(--skin-color,#ec1839); }
+  `;
+  document.head.appendChild(s);
+
+  const lb    = document.createElement("div");
+  lb.className = "lb-overlay";
+  lb.innerHTML = `<span class="lb-close">&times;</span><img src="" alt="Project Preview">`;
+  document.body.appendChild(lb);
+
+  const lbImg = lb.querySelector("img");
+
+  document.querySelectorAll(".Projects-img img").forEach((img) => {
+    img.style.cursor = "zoom-in";
+    img.addEventListener("click", () => {
+      lbImg.src = img.src;
+      lb.classList.add("active");
+    });
+  });
+
+  lb.querySelector(".lb-close").addEventListener("click", () => lb.classList.remove("active"));
+  lb.addEventListener("click", (e) => { if (e.target === lb) lb.classList.remove("active"); });
+})();
