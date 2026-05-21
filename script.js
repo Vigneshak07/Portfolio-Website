@@ -1,5 +1,5 @@
 // ============================================================
-//  PORTFOLIO — script.js
+//  PORTFOLIO — script.js (FIXED for Render deployment)
 // ============================================================
 
 // ===== TYPING ANIMATION =====
@@ -78,7 +78,6 @@ if (navToggler) {
   });
 }
 
-// Close sidebar when nav link clicked on mobile
 navLinks.forEach((link) => {
   link.addEventListener("click", () => {
     if (window.innerWidth <= 1199) {
@@ -95,7 +94,6 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-// Helper: show red error under field
 function showError(input, msg) {
   clearFeedback(input);
   input.style.border = "1.5px solid #e74c3c";
@@ -106,13 +104,11 @@ function showError(input, msg) {
   input.parentElement.appendChild(err);
 }
 
-// Helper: show green border on success
 function showSuccess(input) {
   clearFeedback(input);
   input.style.border = "1.5px solid #2ecc71";
 }
 
-// Helper: clear all feedback
 function clearFeedback(input) {
   input.style.border = "";
   const old = input.parentElement.querySelector(".form-error");
@@ -125,7 +121,6 @@ if (form) {
   const subjectInput = form.querySelector("input[name='subject']");
   const messageInput = form.querySelector("textarea[name='message']");
 
-  // Real-time validation while typing
   [nameInput, emailInput, subjectInput, messageInput].forEach((inp) => {
     inp.addEventListener("input", () => {
       const val = inp.value.trim();
@@ -142,48 +137,37 @@ if (form) {
     e.preventDefault();
     let isValid = true;
 
-    // Reset all feedback first
     [nameInput, emailInput, subjectInput, messageInput].forEach(clearFeedback);
 
-    // Validate name
     if (!nameInput.value.trim()) {
-      showError(nameInput, "Full name is required.");
-      isValid = false;
+      showError(nameInput, "Full name is required."); isValid = false;
     } else { showSuccess(nameInput); }
 
-    // Validate email
     if (!emailInput.value.trim()) {
-      showError(emailInput, "Email is required.");
-      isValid = false;
+      showError(emailInput, "Email is required."); isValid = false;
     } else if (!isValidEmail(emailInput.value)) {
-      showError(emailInput, "Enter a valid email address.");
-      isValid = false;
+      showError(emailInput, "Enter a valid email address."); isValid = false;
     } else { showSuccess(emailInput); }
 
-    // Validate subject
     if (!subjectInput.value.trim()) {
-      showError(subjectInput, "Subject is required.");
-      isValid = false;
+      showError(subjectInput, "Subject is required."); isValid = false;
     } else { showSuccess(subjectInput); }
 
-    // Validate message
     if (!messageInput.value.trim()) {
-      showError(messageInput, "Message is required.");
-      isValid = false;
+      showError(messageInput, "Message is required."); isValid = false;
     } else if (messageInput.value.trim().length < 10) {
-      showError(messageInput, "Message must be at least 10 characters.");
-      isValid = false;
+      showError(messageInput, "Message must be at least 10 characters."); isValid = false;
     } else { showSuccess(messageInput); }
 
     if (!isValid) return;
 
-    // ✅ FIXED: Changed port from 5500 → 5000 (your Express server port)
     const sendBtn = form.querySelector("button[type='submit']");
     sendBtn.textContent = "Sending...";
     sendBtn.disabled = true;
 
     try {
-      const res = await fetch("https://portfolio-backend-n1rs.onrender.com", {
+      // ✅ FIX 1: Added /send at the end of the URL
+      const res = await fetch("https://portfolio-backend-n1rs.onrender.com/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -199,12 +183,14 @@ if (form) {
         form.reset();
         [nameInput, emailInput, subjectInput, messageInput].forEach(clearFeedback);
       } else {
+        const errText = await res.text();
+        console.error("Server error:", errText);
         showToast("❌ Failed to send message. Please try again.");
       }
 
     } catch (err) {
       console.error("Fetch error:", err);
-      showToast("⚠️ Cannot connect to server. Make sure server.js is running.");
+      showToast("⚠️ Server is waking up, please wait 30 seconds and try again.");
     }
 
     sendBtn.textContent = "Send Message";
@@ -264,7 +250,7 @@ function animateSkillBars() {
 }
 
 window.addEventListener("scroll", animateSkillBars);
-animateSkillBars(); // run once on load
+animateSkillBars();
 
 
 // ===== DARK / LIGHT MODE =====
@@ -283,14 +269,15 @@ animateSkillBars(); // run once on load
 const dayNightBtn  = document.querySelector(".day-night");
 const dayNightIcon = dayNightBtn?.querySelector("i");
 
+// ✅ FIX 2: Consistently use document.body (not documentElement)
 if (localStorage.getItem("theme") === "dark") {
   document.body.classList.add("dark");
   dayNightIcon?.classList.replace("fa-moon", "fa-sun");
 }
 
 dayNightBtn?.addEventListener("click", () => {
-  document.documentElement.classList.toggle("dark");
-  const isDark = document.documentElement.classList.contains("dark");
+  document.body.classList.toggle("dark");
+  const isDark = document.body.classList.contains("dark");
   localStorage.setItem("theme", isDark ? "dark" : "light");
   if (dayNightIcon) {
     dayNightIcon.classList.toggle("fa-moon", !isDark);
@@ -314,7 +301,7 @@ dayNightBtn?.addEventListener("click", () => {
   `;
   document.head.appendChild(s);
 
-  const lb    = document.createElement("div");
+  const lb = document.createElement("div");
   lb.className = "lb-overlay";
   lb.innerHTML = `<span class="lb-close">&times;</span><img src="" alt="Project Preview">`;
   document.body.appendChild(lb);
