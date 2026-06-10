@@ -27,20 +27,18 @@ function setActiveStyle(color)
 }
 
 /* ================= theme light and dark mode ============== */
+// Day / Night toggle — FIXED
 const dayNight = document.querySelector(".day-night");
-dayNight.addEventListener("click",() => {
-    dayNight.querySelector("i").classList.toggle("fa-sun");
-    dayNight.querySelector("i").classList.toggle("fa-moon");
+if (dayNight) {
+  dayNight.addEventListener("click", () => {
     document.body.classList.toggle("dark");
-})
-window.addEventListener("load",() => {
-    if(document.body.classList.contains("dark"))
-    {
-        dayNight.querySelector("i").classList.add('fa-sun');
-    }
-    else
-    {
-         dayNight.querySelector("i").classList.add('fa-moon');
+    const isDark = document.body.classList.contains("dark");
+    localStorage.setItem("theme", isDark ? "dark" : "light");
 
+    const icon = dayNight.querySelector("i");
+    if (icon) {
+      icon.classList.toggle("fa-moon", !isDark);
+      icon.classList.toggle("fa-sun", isDark);
     }
-})
+  });
+}
