@@ -871,3 +871,41 @@ h3.my-profession
         font-size: 45px;
     }
 }
+
+
+/* =====================================================
+   ADD THIS TO THE BOTTOM OF YOUR style.css
+   Fix 1: Different name display on mobile vs desktop
+   Fix 2: Dark mode transition smooth
+===================================================== */
+
+/* Desktop name — shows full name */
+.name-desktop { display: inline; }
+.name-mobile  { display: none;  }
+
+/* On mobile — show short name instead */
+@media (max-width: 767px) {
+  .name-desktop { display: none;   }
+  .name-mobile  { display: inline; }
+
+  /* Make hello text smaller so it fits on small screens */
+  h3.hello {
+    font-size: 20px;
+  }
+  h3.hello .name {
+    font-size: 22px;
+  }
+  h3.my-profession {
+    font-size: 22px;
+  }
+}
+
+/* Smooth dark mode transition */
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.aside, .section, .service-item-inner, .timeline,
+.form-control, .style-switcher {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
